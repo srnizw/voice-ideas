@@ -92,22 +92,45 @@ function stopRecording() {
 
 // ==================== Speech 事件处理 ====================
 function handleSpeechResult(e) {
-  const transcript = e.results[0][0].transcript;
-  const status = document.getElementById('statusMsg');
-  status.textContent = '';
-  status.className = 'status-msg';
-  showConfirmDialog(transcript).then((result) => {
-    if (!result) return;
-    addEntry({
-      id: String(Date.now()),
-      type: result.type,
-      content: result.content,
-      date: result.date,
-      time: result.time,
-      createdAt: getNow().iso,
+  try {
+    const results = e.results;
+    if (!results || !results.length) return;
+    const transcript = (results[0][0].transcript || '').trim();
+    if (!transcript) return;
+    const status = document.getElementById('statusMsg');
+    status.textContent = '';
+    status.className = 'status-msg';
+    // 强制先关闭可能残留的旧弹窗，再打开新的
+    forceCloseDialog();
+    showConfirmDialog(transcript).then((result) => {
+      if (!result) return;
+      addEntry({
+        id: String(Date.now()),
+        type: result.type,
+        content: result.content,
+        date: result.date,
+        time: result.time,
+        createdAt: getNow().iso,
+      });
+      renderCurrentFilter();
     });
-    renderCurrentFilter();
-  });
+  } catch (err) {
+    console.error('handleSpeechResult 异常:', err);
+    // 兜底：即使出错也尝试弹窗
+    forceCloseDialog();
+    showConfirmDialog('').then((result) => {
+      if (!result) return;
+      addEntry({
+        id: String(Date.now()),
+        type: result.type,
+        content: result.content,
+        date: result.date,
+        time: result.time,
+        createdAt: getNow().iso,
+      });
+      renderCurrentFilter();
+    });
+  }
 }
 
 function handleSpeechError(e) {
@@ -190,8 +213,23 @@ function escapeHtml(str) {
 }
 
 // ==================== Dialog 模块 ====================
+let activeDialogResolve = null;
+
+function forceCloseDialog() {
+  if (activeDialogResolve) {
+    const r = activeDialogResolve;
+    activeDialogResolve = null;
+    r(null);  // 以 null 关闭旧弹窗
+  }
+}
+
 function showConfirmDialog(text) {
+  // 如果有旧弹窗开着，先关闭
+  forceCloseDialog();
+
   return new Promise((resolve) => {
+    activeDialogResolve = resolve;
+
     const overlay = document.getElementById('confirmDialog');
     const contentEl = document.getElementById('dialogContent');
     const typeEl = document.getElementById('dialogType');
@@ -206,22 +244,29 @@ function showConfirmDialog(text) {
     dateEl.value = now.date;
     timeEl.value = now.time;
 
+    // 强制显示（确保即使处于 hidden 状态也显示）
     overlay.classList.remove('hidden');
-    contentEl.focus();
-    contentEl.setSelectionRange(contentEl.value.length, contentEl.value.length);
+    // 短暂延迟确保 DOM 更新后再 focus（避免移动端键盘问题）
+    setTimeout(() => {
+      contentEl.focus();
+      contentEl.setSelectionRange(contentEl.value.length, contentEl.value.length);
+    }, 50);
 
     function cleanup(result) {
       overlay.classList.add('hidden');
       cancelBtn.removeEventListener('click', onCancel);
       confirmBtn.removeEventListener('click', onConfirm);
-      overlay.removeEventListener('click', onOverlay);
+      overlay.removeEventListener('click', onOverlayClick);
+      if (activeDialogResolve === resolve) {
+        activeDialogResolve = null;
+      }
       resolve(result);
     }
 
     function onCancel() { cleanup(null); }
     function onConfirm() {
       const content = contentEl.value.trim();
-      if (!content) return;  // 空内容不保存
+      if (!content) return;  // 空内容不保存——用户可以继续编辑
       cleanup({
         type: typeEl.value,
         content: content,
@@ -229,13 +274,13 @@ function showConfirmDialog(text) {
         time: timeEl.value,
       });
     }
-    function onOverlay(e) {
+    function onOverlayClick(e) {
       if (e.target === overlay) cleanup(null);
     }
 
     cancelBtn.addEventListener('click', onCancel);
     confirmBtn.addEventListener('click', onConfirm);
-    overlay.addEventListener('click', onOverlay);
+    overlay.addEventListener('click', onOverlayClick);
   });
 }
 
