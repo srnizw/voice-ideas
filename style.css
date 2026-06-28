@@ -78,7 +78,10 @@ header h1 {
   -webkit-user-select: none;
   user-select: none;
   touch-action: manipulation;
+  margin-bottom: 12px;
 }
+
+.voice-btn.hidden { display: none; }
 
 .voice-btn:active,
 .voice-btn.recording {
@@ -115,34 +118,31 @@ header h1 {
 
 .status-msg.error { color: var(--danger); }
 
-/* ===== 手动输入降级 ===== */
-.fallback-input {
+/* ===== 文字输入区域（主要录入方式） ===== */
+.input-area {
   display: flex;
   gap: 8px;
-  margin-top: 12px;
-  max-width: 320px;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 360px;
+  margin: 0 auto;
 }
-
-.fallback-input.hidden { display: none; }
 
 .manual-input {
   flex: 1;
-  padding: 10px 14px;
-  font-size: 15px;
-  border: 1px solid var(--border);
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 2px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
   color: var(--text);
   outline: none;
+  transition: border-color 0.15s ease;
 }
 
 .manual-input:focus { border-color: var(--primary); }
 
 .btn-manual-add {
-  padding: 10px 18px;
-  font-size: 15px;
+  padding: 12px 20px;
+  font-size: 16px;
   font-weight: 600;
   color: #fff;
   background: var(--primary);
@@ -150,7 +150,10 @@ header h1 {
   border-radius: var(--radius);
   cursor: pointer;
   white-space: nowrap;
+  transition: background 0.15s ease;
 }
+
+.btn-manual-add:active { background: #4f46e5; }
 
 /* ===== 分类过滤 ===== */
 .filter-tabs {

@@ -14,13 +14,13 @@
     </header>
 
     <div class="voice-area">
-      <button id="voiceBtn" class="voice-btn">
+      <button id="voiceBtn" class="voice-btn hidden">
         <span class="mic-icon">🎤</span>
         <span class="btn-label">按住说话，松开识别</span>
       </button>
       <div id="statusMsg" class="status-msg"></div>
-      <div id="fallbackInput" class="fallback-input hidden">
-        <input type="text" id="manualInput" class="manual-input" placeholder="手动输入内容...">
+      <div id="inputArea" class="input-area">
+        <input type="text" id="manualInput" class="manual-input" placeholder="输入你的想法或行程...">
         <button id="manualAddBtn" class="btn-manual-add">添加</button>
       </div>
     </div>
@@ -43,7 +43,7 @@
         </thead>
         <tbody id="tableBody"></tbody>
       </table>
-      <div id="emptyState" class="empty-state">📭 还没有记录，长按按钮开始吧</div>
+      <div id="emptyState" class="empty-state">📭 还没有记录，在上方输入框开始吧</div>
     </div>
   </div>
 

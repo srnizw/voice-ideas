@@ -335,11 +335,15 @@ function init() {
   setupDeleteButtons();
   setupManualInput();
 
-  // 检测不支持语音时显示手动输入
-  if (!isSupported) {
-    document.getElementById('voiceBtn').style.display = 'none';
-    document.getElementById('fallbackInput').classList.remove('hidden');
-    document.getElementById('statusMsg').textContent = '你的浏览器不支持语音识别，请使用 Chrome 或手动输入';
+  if (isSupported) {
+    // 支持语音：显示语音按钮
+    document.getElementById('voiceBtn').classList.remove('hidden');
+    document.getElementById('statusMsg').textContent = '也可以直接在下方输入框中输入';
+    document.getElementById('statusMsg').className = 'status-msg';
+  } else {
+    // 不支持语音（iOS Safari 等）：隐藏语音按钮，仅用文字输入
+    document.getElementById('voiceBtn').classList.add('hidden');
+    document.getElementById('statusMsg').textContent = '📝 此浏览器不支持语音识别，请使用输入框';
     document.getElementById('statusMsg').className = 'status-msg error';
   }
 }
