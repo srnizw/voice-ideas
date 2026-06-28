@@ -32,6 +32,7 @@ function deleteEntry(id) {
 
 // ==================== Speech 模块 ====================
 let recognition = null;
+let recognitionSessionId = 0;  // 递增会话 ID，鉴定过期事件
 let isSupported = false;
 
 function initSpeech() {
@@ -42,28 +43,42 @@ function initSpeech() {
 function startRecording() {
   if (!isSupported) return false;
 
-  // 每次录音创建新实例，避免复用导致第二次无法识别
+  // 清理上一个实例（abort 会触发 end 事件，sessionId 机制保证它被忽略）
   if (recognition) {
     try { recognition.abort(); } catch {}
     recognition = null;
   }
 
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SR();
-  recognition.lang = 'zh-CN';
-  recognition.interimResults = false;
-  recognition.continuous = false;
-  recognition.maxAlternatives = 1;
+  const rec = new SR();
+  rec.lang = 'zh-CN';
+  rec.interimResults = false;
+  rec.continuous = false;
+  rec.maxAlternatives = 1;
 
-  recognition.addEventListener('result', handleSpeechResult);
-  recognition.addEventListener('error', handleSpeechError);
-  recognition.addEventListener('end', handleSpeechEnd);
+  const sid = ++recognitionSessionId;   // 本次录音的唯一 ID
+
+  rec.addEventListener('result', (e) => {
+    if (sid !== recognitionSessionId) return;  // 过期事件，忽略
+    handleSpeechResult(e);
+  });
+  rec.addEventListener('error', (e) => {
+    if (sid !== recognitionSessionId) return;
+    handleSpeechError(e);
+  });
+  rec.addEventListener('end', () => {
+    if (sid !== recognitionSessionId) return;
+    handleSpeechEnd();
+  });
+
+  recognition = rec;
 
   try {
-    recognition.start();
+    rec.start();
     return true;
   } catch (e) {
     console.error('语音启动失败:', e);
+    recognition = null;
     return false;
   }
 }
@@ -111,7 +126,6 @@ function handleSpeechError(e) {
 }
 
 function handleSpeechEnd() {
-  // 还原按钮状态
   resetVoiceButton();
 }
 
