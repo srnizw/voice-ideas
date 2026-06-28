@@ -35,27 +35,36 @@ let recognition = null;
 let isSupported = false;
 
 function initSpeech() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    isSupported = false;
-    return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  isSupported = !!SR;
+}
+
+function startRecording() {
+  if (!isSupported) return false;
+
+  // 每次录音创建新实例，避免复用导致第二次无法识别
+  if (recognition) {
+    try { recognition.abort(); } catch {}
+    recognition = null;
   }
 
-  recognition = new SpeechRecognition();
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
   recognition.lang = 'zh-CN';
   recognition.interimResults = false;
   recognition.continuous = false;
   recognition.maxAlternatives = 1;
 
-  isSupported = true;
-}
+  recognition.addEventListener('result', handleSpeechResult);
+  recognition.addEventListener('error', handleSpeechError);
+  recognition.addEventListener('end', handleSpeechEnd);
 
-function startRecording() {
-  if (!recognition) return;
   try {
     recognition.start();
-  } catch {
-    // 可能已启动，忽略
+    return true;
+  } catch (e) {
+    console.error('语音启动失败:', e);
+    return false;
   }
 }
 
@@ -63,9 +72,47 @@ function stopRecording() {
   if (!recognition) return;
   try {
     recognition.stop();
-  } catch {
-    // 可能已停止，忽略
+  } catch {}
+}
+
+// ==================== Speech 事件处理 ====================
+function handleSpeechResult(e) {
+  const transcript = e.results[0][0].transcript;
+  const status = document.getElementById('statusMsg');
+  status.textContent = '';
+  status.className = 'status-msg';
+  showConfirmDialog(transcript).then((result) => {
+    if (!result) return;
+    addEntry({
+      id: String(Date.now()),
+      type: result.type,
+      content: result.content,
+      date: result.date,
+      time: result.time,
+      createdAt: getNow().iso,
+    });
+    renderCurrentFilter();
+  });
+}
+
+function handleSpeechError(e) {
+  const status = document.getElementById('statusMsg');
+  const messages = {
+    'no-speech': '未检测到语音，请再试一次',
+    'audio-capture': '无法访问麦克风，请检查权限',
+    'not-allowed': '麦克风权限未开启',
+    'aborted': '',
+  };
+  const msg = messages[e.error] || '识别出错，请重试';
+  if (msg) {
+    status.textContent = msg;
+    status.className = 'status-msg error';
   }
+}
+
+function handleSpeechEnd() {
+  // 还原按钮状态
+  resetVoiceButton();
 }
 
 // ==================== 工具函数 ====================
@@ -181,6 +228,19 @@ function showConfirmDialog(text) {
 // ==================== Events 模块 ====================
 let isRecording = false;
 
+function resetVoiceButton() {
+  const btn = document.getElementById('voiceBtn');
+  if (!btn || btn.classList.contains('hidden')) return;
+  const mic = btn.querySelector('.mic-icon');
+  const label = btn.querySelector('.btn-label');
+  if (isRecording) {
+    isRecording = false;
+    btn.classList.remove('recording');
+    mic.textContent = '🎤';
+    label.textContent = '按住说话，松开识别';
+  }
+}
+
 function setupVoiceButton() {
   const btn = document.getElementById('voiceBtn');
   const label = btn.querySelector('.btn-label');
@@ -189,15 +249,20 @@ function setupVoiceButton() {
 
   function onStart(e) {
     e.preventDefault();
-    if (!isSupported) return;
-    if (isRecording) return;
+    if (!isSupported || isRecording) return;
     isRecording = true;
     btn.classList.add('recording');
     mic.textContent = '🔴';
     label.textContent = '正在聆听...';
     status.textContent = '';
     status.className = 'status-msg';
-    startRecording();
+    const ok = startRecording();
+    if (!ok) {
+      // 启动失败，立刻还原状态
+      resetVoiceButton();
+      status.textContent = '语音启动失败，请重试';
+      status.className = 'status-msg error';
+    }
   }
 
   function onStop(e) {
@@ -219,56 +284,6 @@ function setupVoiceButton() {
   btn.addEventListener('touchstart', onStart, { passive: false });
   btn.addEventListener('touchend', onStop, { passive: false });
   btn.addEventListener('touchcancel', onStop, { passive: false });
-
-  // 语音识别结果
-  if (recognition) {
-    recognition.addEventListener('result', (e) => {
-      const transcript = e.results[0][0].transcript;
-      const status = document.getElementById('statusMsg');
-      status.textContent = '';
-      status.className = 'status-msg';
-      showConfirmDialog(transcript).then((result) => {
-        if (!result) return;  // 取消
-        const now = getNow();
-        addEntry({
-          id: String(Date.now()),
-          type: result.type,
-          content: result.content,
-          date: result.date,
-          time: result.time,
-          createdAt: now.iso,
-        });
-        renderCurrentFilter();
-      });
-    });
-
-    recognition.addEventListener('error', (e) => {
-      const status = document.getElementById('statusMsg');
-      if (e.error === 'no-speech') {
-        status.textContent = '未检测到语音，请再试一次';
-      } else if (e.error === 'audio-capture') {
-        status.textContent = '无法访问麦克风，请检查权限';
-      } else if (e.error === 'not-allowed') {
-        status.textContent = '麦克风权限未开启';
-      } else {
-        status.textContent = '识别出错，请重试';
-      }
-      status.className = 'status-msg error';
-    });
-
-    recognition.addEventListener('end', () => {
-      // 确保按钮状态还原（可能在非正常流程下结束）
-      const btn = document.getElementById('voiceBtn');
-      const mic = btn.querySelector('.mic-icon');
-      const label = btn.querySelector('.btn-label');
-      if (isRecording) {
-        isRecording = false;
-        btn.classList.remove('recording');
-        mic.textContent = '🎤';
-        label.textContent = '按住说话，松开识别';
-      }
-    });
-  }
 }
 
 function setupTabs() {
