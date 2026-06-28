@@ -1,0 +1,436 @@
+/* ===== 基础重置与变量 ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #6366f1;
+  --primary-light: #a5b4fc;
+  --bg: #f8f7ff;
+  --card: #ffffff;
+  --text: #1e1b4b;
+  --text-secondary: #6b7280;
+  --border: #e5e7eb;
+  --danger: #ef4444;
+  --idea-badge: #dbeafe;
+  --idea-text: #1d4ed8;
+  --schedule-badge: #dcfce7;
+  --schedule-text: #15803d;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.container {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+
+/* ===== 标题 ===== */
+header {
+  text-align: center;
+  padding: 24px 0 16px;
+}
+
+header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+/* ===== 语音按钮区域 ===== */
+.voice-area {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.voice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 320px;
+  padding: 18px 24px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--primary);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.voice-btn:active,
+.voice-btn.recording {
+  background: #4f46e5;
+  transform: scale(0.97);
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+}
+
+.voice-btn.recording {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+}
+
+.voice-btn:active .mic-icon,
+.voice-btn.recording .mic-icon {
+  transform: scale(1.15);
+}
+
+.mic-icon {
+  font-size: 24px;
+  transition: transform 0.15s ease;
+}
+
+.status-msg {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  min-height: 20px;
+}
+
+.status-msg.error { color: var(--danger); }
+
+/* ===== 手动输入降级 ===== */
+.fallback-input {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.fallback-input.hidden { display: none; }
+
+.manual-input {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text);
+  outline: none;
+}
+
+.manual-input:focus { border-color: var(--primary); }
+
+.btn-manual-add {
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ===== 分类过滤 ===== */
+.filter-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 12px 0;
+  justify-content: center;
+}
+
+.tab {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab.active {
+  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* ===== 表格 ===== */
+.table-wrapper {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+#entriesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+#entriesTable.hidden { display: none; }
+
+#entriesTable thead {
+  background: #f9fafb;
+}
+
+#entriesTable th {
+  padding: 10px 8px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.col-date    { width: 100px; }
+.col-type    { width: 80px;  }
+.col-content { }
+.col-action  { width: 44px; text-align: center; }
+
+#entriesTable td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+#entriesTable tbody tr:last-child td { border-bottom: none; }
+
+#entriesTable tbody tr {
+  transition: background 0.2s ease;
+}
+
+#entriesTable tbody tr.removing {
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all 0.2s ease;
+}
+
+/* 类别 badge */
+.type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.type-badge.idea {
+  background: var(--idea-badge);
+  color: var(--idea-text);
+}
+
+.type-badge.schedule {
+  background: var(--schedule-badge);
+  color: var(--schedule-text);
+}
+
+/* 日期时间 */
+.date-cell {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.date-cell .time {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* 内容 */
+.content-cell {
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* 删除按钮 */
+.btn-delete {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  color: #9ca3af;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete:hover,
+.btn-delete:active {
+  color: var(--danger);
+  background: #fef2f2;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+.empty-state.hidden { display: none; }
+
+/* ===== 确认弹窗 ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-overlay.hidden { display: none; }
+
+.modal {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.modal h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.dialog-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.modal textarea {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  resize: none;
+  margin-bottom: 12px;
+  outline: none;
+  color: var(--text);
+  background: #f9fafb;
+}
+
+.modal textarea:focus { border-color: var(--primary); }
+
+.dialog-row {
+  margin-bottom: 12px;
+}
+
+.dialog-row select,
+.dialog-row input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #f9fafb;
+  color: var(--text);
+  outline: none;
+}
+
+.dialog-row select:focus,
+.dialog-row input:focus { border-color: var(--primary); }
+
+.dialog-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.btn-cancel,
+.btn-confirm {
+  flex: 1;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: var(--text-secondary);
+}
+
+.btn-cancel:active { background: #e5e7eb; }
+
+.btn-confirm {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-confirm:active { background: #4f46e5; }
+
+/* ===== 响应式 ===== */
+@media (min-width: 520px) {
+  .container { padding: 32px 20px 48px; }
+
+  .modal {
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+  }
+  .modal-overlay { align-items: center; }
+}
+
+/* 大屏适配：居中且舒适 */
+@media (min-width: 768px) {
+  header { padding: 32px 0 20px; }
+  header h1 { font-size: 32px; }
+  .voice-btn { max-width: 360px; }
+}

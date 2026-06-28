@@ -1,0 +1,347 @@
+/* ==========================================
+   app.js — 奇思妙想 · 语音记录
+   模块：State / Speech / Render / Dialog / Events
+   ========================================== */
+
+// ==================== State 模块 ====================
+const STORAGE_KEY = 'qisimiaoxiang_entries';
+
+function loadEntries() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveEntries(entries) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+
+function addEntry(entry) {
+  const entries = loadEntries();
+  entries.unshift(entry);  // 最新在前
+  saveEntries(entries);
+}
+
+function deleteEntry(id) {
+  const entries = loadEntries();
+  saveEntries(entries.filter(e => e.id !== id));
+}
+
+// ==================== Speech 模块 ====================
+let recognition = null;
+let isSupported = false;
+
+function initSpeech() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    isSupported = false;
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = 'zh-CN';
+  recognition.interimResults = false;
+  recognition.continuous = false;
+  recognition.maxAlternatives = 1;
+
+  isSupported = true;
+}
+
+function startRecording() {
+  if (!recognition) return;
+  try {
+    recognition.start();
+  } catch {
+    // 可能已启动，忽略
+  }
+}
+
+function stopRecording() {
+  if (!recognition) return;
+  try {
+    recognition.stop();
+  } catch {
+    // 可能已停止，忽略
+  }
+}
+
+// ==================== 工具函数 ====================
+function getNow() {
+  const d = new Date();
+  return {
+    iso: d.toISOString(),
+    date: d.toISOString().slice(0, 10),
+    time: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`,
+    displayDate: `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+  };
+}
+
+// ==================== Render 模块 ====================
+let currentFilter = 'all';
+
+function filterEntries(filter) {
+  currentFilter = filter;
+  const entries = loadEntries();
+  const filtered = filter === 'all' ? entries : entries.filter(e => e.type === filter);
+  renderTable(filtered);
+  updateTabs(filter);
+}
+
+function updateTabs(active) {
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.filter === active);
+  });
+}
+
+function renderTable(entries) {
+  const tbody = document.getElementById('tableBody');
+  const table = document.getElementById('entriesTable');
+  const empty = document.getElementById('emptyState');
+
+  if (entries.length === 0) {
+    table.classList.add('hidden');
+    empty.classList.remove('hidden');
+    return;
+  }
+
+  table.classList.remove('hidden');
+  empty.classList.add('hidden');
+
+  tbody.innerHTML = entries.map(e => `
+    <tr data-id="${e.id}">
+      <td class="date-cell">
+        ${e.date.slice(5)}<br><span class="time">${e.time}</span>
+      </td>
+      <td><span class="type-badge ${e.type}">${e.type === 'idea' ? '💡 奇思妙想' : '📅 行程安排'}</span></td>
+      <td class="content-cell">${escapeHtml(e.content)}</td>
+      <td><button class="btn-delete" data-delete="${e.id}" title="删除">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ==================== Dialog 模块 ====================
+function showConfirmDialog(text) {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('confirmDialog');
+    const contentEl = document.getElementById('dialogContent');
+    const typeEl = document.getElementById('dialogType');
+    const dateEl = document.getElementById('dialogDate');
+    const timeEl = document.getElementById('dialogTime');
+    const cancelBtn = document.getElementById('dialogCancel');
+    const confirmBtn = document.getElementById('dialogConfirm');
+
+    const now = getNow();
+    contentEl.value = text;
+    typeEl.value = 'idea';
+    dateEl.value = now.date;
+    timeEl.value = now.time;
+
+    overlay.classList.remove('hidden');
+    contentEl.focus();
+    contentEl.setSelectionRange(contentEl.value.length, contentEl.value.length);
+
+    function cleanup(result) {
+      overlay.classList.add('hidden');
+      cancelBtn.removeEventListener('click', onCancel);
+      confirmBtn.removeEventListener('click', onConfirm);
+      overlay.removeEventListener('click', onOverlay);
+      resolve(result);
+    }
+
+    function onCancel() { cleanup(null); }
+    function onConfirm() {
+      const content = contentEl.value.trim();
+      if (!content) return;  // 空内容不保存
+      cleanup({
+        type: typeEl.value,
+        content: content,
+        date: dateEl.value,
+        time: timeEl.value,
+      });
+    }
+    function onOverlay(e) {
+      if (e.target === overlay) cleanup(null);
+    }
+
+    cancelBtn.addEventListener('click', onCancel);
+    confirmBtn.addEventListener('click', onConfirm);
+    overlay.addEventListener('click', onOverlay);
+  });
+}
+
+// ==================== Events 模块 ====================
+let isRecording = false;
+
+function setupVoiceButton() {
+  const btn = document.getElementById('voiceBtn');
+  const label = btn.querySelector('.btn-label');
+  const mic = btn.querySelector('.mic-icon');
+  const status = document.getElementById('statusMsg');
+
+  function onStart(e) {
+    e.preventDefault();
+    if (!isSupported) return;
+    if (isRecording) return;
+    isRecording = true;
+    btn.classList.add('recording');
+    mic.textContent = '🔴';
+    label.textContent = '正在聆听...';
+    status.textContent = '';
+    status.className = 'status-msg';
+    startRecording();
+  }
+
+  function onStop(e) {
+    e.preventDefault();
+    if (!isRecording) return;
+    isRecording = false;
+    btn.classList.remove('recording');
+    mic.textContent = '🎤';
+    label.textContent = '按住说话，松开识别';
+    stopRecording();
+  }
+
+  // 鼠标
+  btn.addEventListener('mousedown', onStart);
+  btn.addEventListener('mouseup', onStop);
+  btn.addEventListener('mouseleave', onStop);
+
+  // 触屏
+  btn.addEventListener('touchstart', onStart, { passive: false });
+  btn.addEventListener('touchend', onStop, { passive: false });
+  btn.addEventListener('touchcancel', onStop, { passive: false });
+
+  // 语音识别结果
+  if (recognition) {
+    recognition.addEventListener('result', (e) => {
+      const transcript = e.results[0][0].transcript;
+      const status = document.getElementById('statusMsg');
+      status.textContent = '';
+      status.className = 'status-msg';
+      showConfirmDialog(transcript).then((result) => {
+        if (!result) return;  // 取消
+        const now = getNow();
+        addEntry({
+          id: String(Date.now()),
+          type: result.type,
+          content: result.content,
+          date: result.date,
+          time: result.time,
+          createdAt: now.iso,
+        });
+        renderCurrentFilter();
+      });
+    });
+
+    recognition.addEventListener('error', (e) => {
+      const status = document.getElementById('statusMsg');
+      if (e.error === 'no-speech') {
+        status.textContent = '未检测到语音，请再试一次';
+      } else if (e.error === 'audio-capture') {
+        status.textContent = '无法访问麦克风，请检查权限';
+      } else if (e.error === 'not-allowed') {
+        status.textContent = '麦克风权限未开启';
+      } else {
+        status.textContent = '识别出错，请重试';
+      }
+      status.className = 'status-msg error';
+    });
+
+    recognition.addEventListener('end', () => {
+      // 确保按钮状态还原（可能在非正常流程下结束）
+      const btn = document.getElementById('voiceBtn');
+      const mic = btn.querySelector('.mic-icon');
+      const label = btn.querySelector('.btn-label');
+      if (isRecording) {
+        isRecording = false;
+        btn.classList.remove('recording');
+        mic.textContent = '🎤';
+        label.textContent = '按住说话，松开识别';
+      }
+    });
+  }
+}
+
+function setupTabs() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      filterEntries(tab.dataset.filter);
+    });
+  });
+}
+
+function setupDeleteButtons() {
+  document.getElementById('tableBody').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-delete]');
+    if (!btn) return;
+    const id = btn.dataset.delete;
+    // 删除动画
+    const row = btn.closest('tr');
+    row.classList.add('removing');
+    row.addEventListener('transitionend', () => {
+      deleteEntry(id);
+      renderCurrentFilter();
+    }, { once: true });
+  });
+}
+
+function setupManualInput() {
+  const input = document.getElementById('manualInput');
+  const addBtn = document.getElementById('manualAddBtn');
+
+  addBtn.addEventListener('click', () => {
+    const text = input.value.trim();
+    if (!text) return;
+    showConfirmDialog(text).then((result) => {
+      if (!result) return;
+      const now = getNow();
+      addEntry({
+        id: String(Date.now()),
+        type: result.type,
+        content: result.content,
+        date: result.date,
+        time: result.time,
+        createdAt: now.iso,
+      });
+      input.value = '';
+      renderCurrentFilter();
+    });
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addBtn.click();
+  });
+}
+
+function renderCurrentFilter() {
+  filterEntries(currentFilter);
+}
+
+// ==================== 初始化 ====================
+function init() {
+  initSpeech();
+  renderCurrentFilter();
+  setupVoiceButton();
+  setupTabs();
+  setupDeleteButtons();
+  setupManualInput();
+
+  // 检测不支持语音时显示手动输入
+  if (!isSupported) {
+    document.getElementById('voiceBtn').style.display = 'none';
+    document.getElementById('fallbackInput').classList.remove('hidden');
+    document.getElementById('statusMsg').textContent = '你的浏览器不支持语音识别，请使用 Chrome 或手动输入';
+    document.getElementById('statusMsg').className = 'status-msg error';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);

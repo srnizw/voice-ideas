@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>奇思妙想 — 语音记录</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>💡 奇思妙想</h1>
+      <p class="subtitle">语音记录你的灵感和行程</p>
+    </header>
+
+    <div class="voice-area">
+      <button id="voiceBtn" class="voice-btn">
+        <span class="mic-icon">🎤</span>
+        <span class="btn-label">按住说话，松开识别</span>
+      </button>
+      <div id="statusMsg" class="status-msg"></div>
+      <div id="fallbackInput" class="fallback-input hidden">
+        <input type="text" id="manualInput" class="manual-input" placeholder="手动输入内容...">
+        <button id="manualAddBtn" class="btn-manual-add">添加</button>
+      </div>
+    </div>
+
+    <nav class="filter-tabs">
+      <button class="tab active" data-filter="all">全部</button>
+      <button class="tab" data-filter="idea">💡 奇思妙想</button>
+      <button class="tab" data-filter="schedule">📅 行程安排</button>
+    </nav>
+
+    <div class="table-wrapper">
+      <table id="entriesTable">
+        <thead>
+          <tr>
+            <th class="col-date">日期</th>
+            <th class="col-type">类别</th>
+            <th class="col-content">内容</th>
+            <th class="col-action">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty-state">📭 还没有记录，长按按钮开始吧</div>
+    </div>
+  </div>
+
+  <!-- 确认弹窗 -->
+  <div id="confirmDialog" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>确认录入</h3>
+      <label class="dialog-label">内容</label>
+      <textarea id="dialogContent" rows="3" placeholder="编辑识别结果..."></textarea>
+      <div class="dialog-row">
+        <label class="dialog-label">类别</label>
+        <select id="dialogType">
+          <option value="idea">💡 奇思妙想</option>
+          <option value="schedule">📅 行程安排</option>
+        </select>
+      </div>
+      <div class="dialog-row">
+        <label class="dialog-label">日期</label>
+        <input type="date" id="dialogDate">
+      </div>
+      <div class="dialog-row">
+        <label class="dialog-label">时间</label>
+        <input type="time" id="dialogTime">
+      </div>
+      <div class="dialog-actions">
+        <button id="dialogCancel" class="btn-cancel">取消</button>
+        <button id="dialogConfirm" class="btn-confirm">✓ 确认保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
