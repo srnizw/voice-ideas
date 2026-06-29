@@ -355,13 +355,19 @@
     background: rgba(139, 69, 19, 0.25);
     border-color: rgba(255, 215, 0, 0.3);
   }
+  .wish-item .wish-deity-imgs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    flex-shrink: 0;
+    max-width: 130px;
+  }
   .wish-item .wish-deity-img {
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     object-fit: cover;
     border: 1px solid rgba(255, 215, 0, 0.3);
-    flex-shrink: 0;
   }
   .wish-item .wish-text {
     flex: 1;
@@ -706,7 +712,7 @@ function renderWishes() {
     return `
     <li class="wish-item">
       ${deityList.length > 0
-        ? deityList.map(d => `<img class="wish-deity-img" src="${d.imgSrc}" alt="${escapeHtml(d.name)}" title="向${escapeHtml(d.name)}祈福" onerror="this.style.display='none';">`).join('')
+        ? `<div class="wish-deity-imgs">${deityList.map(d => `<img class="wish-deity-img" src="${d.imgSrc}" alt="${escapeHtml(d.name)}" title="向${escapeHtml(d.name)}祈福" onerror="this.style.display='none';">`).join('')}</div>`
         : `<span style="font-size:20px;flex-shrink:0;">🙏</span>`}
       <span class="wish-text">${escapeHtml(w.text)}</span>
       <span class="wish-time">${w.time}</span>
