@@ -219,20 +219,23 @@
   .wish-input-row {
     display: flex;
     gap: 12px;
-    align-items: center;
+    align-items: flex-start;
   }
   .wish-input {
     flex: 1;
     padding: 14px 20px;
     font-size: 18px;
     border: 2px solid rgba(255, 215, 0, 0.3);
-    border-radius: 30px;
+    border-radius: 18px;
     background: rgba(0, 0, 0, 0.4);
     color: #ffd700;
     outline: none;
     font-family: inherit;
     letter-spacing: 3px;
     transition: border-color 0.3s, box-shadow 0.3s;
+    resize: vertical;
+    min-height: 56px;
+    line-height: 1.6;
   }
   .wish-input::placeholder {
     color: rgba(201, 169, 110, 0.4);
@@ -331,7 +334,7 @@
   }
   .wish-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
     padding: 14px 18px;
     margin-bottom: 10px;
@@ -362,6 +365,8 @@
     font-size: 16px;
     letter-spacing: 2px;
     color: #f0e6d3;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
   .wish-item .wish-time {
     font-size: 11px;
@@ -459,11 +464,12 @@
 <!-- 祈福输入 -->
 <div class="wish-section">
   <div class="wish-input-row">
-    <input type="text" class="wish-input" id="wishInput" placeholder="在此写下您的愿望…" maxlength="200" autocomplete="off">
+    <textarea class="wish-input" id="wishInput" placeholder="在此写下您的愿望…" maxlength="500" rows="3" autocomplete="off"></textarea>
     <button class="btn-select-all" onclick="selectAllDeities()" title="全选所有神仙">全 选</button>
     <button class="btn-submit" onclick="submitWish()">祈 福</button>
   </div>
   <div class="selected-deity-tags" id="selectedDeityTags"></div>
+  <div style="text-align:right;margin-top:4px;font-size:11px;color:rgba(201,169,110,0.35);letter-spacing:1px;">Ctrl + Enter 提交 · Enter 换行</div>
 </div>
 
 <!-- 愿望列表 -->
@@ -711,9 +717,12 @@ function deleteWish(id) {
   renderWishes();
 }
 
-// ====== 键盘提交 ======
+// ====== 键盘提交（Ctrl+Enter 提交，Enter 换行） ======
 document.getElementById('wishInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') submitWish();
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    submitWish();
+  }
 });
 
 // ====== 初始化 ======
