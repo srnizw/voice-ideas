@@ -330,6 +330,8 @@
   }
   .wish-list {
     list-style: none;
+    padding: 0;
+    max-width: 100%;
   }
   .wish-item {
     display: flex;
@@ -342,6 +344,8 @@
     border-radius: 12px;
     transition: all 0.3s;
     animation: fadeInUp 0.4s ease-out;
+    overflow: hidden;
+    min-width: 0;
   }
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(20px); }
@@ -365,10 +369,11 @@
     letter-spacing: 2px;
     color: #f0e6d3;
     white-space: pre-wrap;
-    word-break: break-word;
+    word-break: break-all;
     overflow-wrap: break-word;
     text-align: left;
     min-width: 0;
+    overflow: hidden;
   }
   .wish-item .wish-time {
     font-size: 11px;
