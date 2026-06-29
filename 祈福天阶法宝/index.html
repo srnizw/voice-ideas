@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>天阶祈福法宝</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(180deg, #1a0a0a 0%, #2d1010 30%, #3d1515 60%, #1a0a0a 100%);
+    min-height: 100vh;
+    font-family: "STSong", "SimSun", "KaiTi", "STKaiti", "Microsoft YaHei", serif;
+    color: #f0e6d3;
+    padding: 20px;
+  }
+
+  /* ====== 顶部装饰 ====== */
+  .header-decoration {
+    text-align: center;
+    padding: 20px 0 10px;
+  }
+  .header-decoration .cloud {
+    font-size: 28px;
+    letter-spacing: 12px;
+    opacity: 0.6;
+    animation: cloudFloat 3s ease-in-out infinite;
+  }
+  @keyframes cloudFloat {
+    0%, 100% { opacity: 0.4; transform: translateY(0); }
+    50% { opacity: 0.8; transform: translateY(-6px); }
+  }
+
+  /* ====== 页面标题 ====== */
+  .main-title {
+    text-align: center;
+    font-size: 42px;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 2px 4px rgba(0,0,0,0.6);
+    letter-spacing: 8px;
+    margin-bottom: 8px;
+  }
+  .sub-title {
+    text-align: center;
+    font-size: 16px;
+    color: #c9a96e;
+    letter-spacing: 4px;
+    margin-bottom: 30px;
+  }
+
+  /* ====== 神仙区域 ====== */
+  .deity-section {
+    max-width: 1100px;
+    margin: 0 auto 30px;
+  }
+  .deity-section h2 {
+    text-align: center;
+    font-size: 22px;
+    color: #ffd700;
+    letter-spacing: 6px;
+    margin-bottom: 16px;
+    font-weight: normal;
+  }
+
+  .deity-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .deity-card {
+    width: 110px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    border-radius: 12px;
+    padding: 8px;
+    background: rgba(139, 69, 19, 0.2);
+    border: 1px solid rgba(255, 215, 0, 0.15);
+  }
+  .deity-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.35);
+    border-color: rgba(255, 215, 0, 0.5);
+  }
+  .deity-card.selected {
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    background: rgba(255, 215, 0, 0.1);
+  }
+  .deity-card img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+  }
+  .deity-card .deity-name {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #f0e6d3;
+    letter-spacing: 2px;
+  }
+
+  /* 用户添加的神仙卡片 */
+  .deity-card.user-added img {
+    border-color: rgba(255, 165, 0, 0.5);
+  }
+  .deity-card.user-added .deity-name {
+    color: #ffa500;
+  }
+
+  /* 占位卡片 */
+  .deity-card.placeholder {
+    border: 2px dashed rgba(255, 215, 0, 0.3);
+    background: rgba(139, 69, 19, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    min-height: 140px;
+  }
+  .deity-card.placeholder .placeholder-icon {
+    font-size: 36px;
+    opacity: 0.4;
+  }
+  .deity-card.placeholder .placeholder-text {
+    font-size: 12px;
+    color: #c9a96e;
+    margin-top: 4px;
+    opacity: 0.5;
+  }
+
+  /* ====== 添加按钮 ====== */
+  .add-btn-wrapper {
+    text-align: center;
+    margin: 16px 0 10px;
+  }
+  .btn-add-deity {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 28px;
+    background: linear-gradient(135deg, #8b0000, #b22222);
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    letter-spacing: 3px;
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+  .btn-add-deity:hover {
+    background: linear-gradient(135deg, #b22222, #dc143c);
+    box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
+    transform: translateY(-2px);
+  }
+  .btn-add-deity .btn-icon {
+    font-size: 20px;
+  }
+
+  /* 删除用户神仙的按钮 */
+  .btn-remove-deity {
+    display: block;
+    margin: 4px auto 0;
+    padding: 2px 10px;
+    background: rgba(139, 0, 0, 0.5);
+    color: #c9a96e;
+    border: 1px solid rgba(139, 0, 0, 0.3);
+    border-radius: 10px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+  .btn-remove-deity:hover {
+    background: rgba(139, 0, 0, 0.8);
+    color: #ff6b6b;
+  }
+
+  /* ====== 分割线文字 ====== */
+  .divider-section {
+    text-align: center;
+    padding: 24px 0 20px;
+    position: relative;
+  }
+  .divider-line {
+    width: 200px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #ffd700, transparent);
+    margin: 0 auto 12px;
+  }
+  .divider-text {
+    font-weight: bold;
+    font-size: 22px;
+    color: #ffd700;
+    letter-spacing: 6px;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+  }
+  .divider-sub {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #c9a96e;
+    letter-spacing: 4px;
+  }
+
+  /* ====== 祈福输入区域 ====== */
+  .wish-section {
+    max-width: 600px;
+    margin: 0 auto 30px;
+    text-align: center;
+  }
+  .wish-input-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .wish-input {
+    flex: 1;
+    padding: 14px 20px;
+    font-size: 18px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 30px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #ffd700;
+    outline: none;
+    font-family: inherit;
+    letter-spacing: 3px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .wish-input::placeholder {
+    color: rgba(201, 169, 110, 0.4);
+    letter-spacing: 3px;
+  }
+  .wish-input:focus {
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.25);
+  }
+  .btn-submit {
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #b8860b, #daa520);
+    color: #1a0a0a;
+    border: none;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: 4px;
+    font-family: inherit;
+    transition: all 0.3s;
+    white-space: nowrap;
+  }
+  .btn-submit:hover {
+    background: linear-gradient(135deg, #daa520, #ffd700);
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.5);
+    transform: translateY(-2px);
+  }
+
+  /* 选中的神仙标签 */
+  .selected-deity-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .selected-deity-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 20px;
+    font-size: 13px;
+    color: #ffd700;
+    letter-spacing: 2px;
+  }
+  .selected-deity-tag .clear-deity {
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .selected-deity-tag .clear-deity:hover {
+    opacity: 1;
+  }
+
+  /* 全选按钮 */
+  .btn-select-all {
+    padding: 14px 14px;
+    background: rgba(255, 215, 0, 0.08);
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    border-radius: 30px;
+    font-size: 15px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    font-family: inherit;
+    transition: all 0.3s;
+    white-space: nowrap;
+  }
+  .btn-select-all:hover {
+    background: rgba(255, 215, 0, 0.18);
+    border-color: #ffd700;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.25);
+  }
+
+  /* ====== 愿望列表 ====== */
+  .wish-list-section {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .wish-list-section h2 {
+    text-align: center;
+    font-size: 18px;
+    color: #c9a96e;
+    letter-spacing: 4px;
+    margin-bottom: 16px;
+    font-weight: normal;
+  }
+  .wish-list {
+    list-style: none;
+  }
+  .wish-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    background: rgba(139, 69, 19, 0.15);
+    border: 1px solid rgba(255, 215, 0, 0.1);
+    border-radius: 12px;
+    transition: all 0.3s;
+    animation: fadeInUp 0.4s ease-out;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .wish-item:hover {
+    background: rgba(139, 69, 19, 0.25);
+    border-color: rgba(255, 215, 0, 0.3);
+  }
+  .wish-item .wish-deity-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    flex-shrink: 0;
+  }
+  .wish-item .wish-text {
+    flex: 1;
+    font-size: 16px;
+    letter-spacing: 2px;
+    color: #f0e6d3;
+  }
+  .wish-item .wish-time {
+    font-size: 11px;
+    color: rgba(201, 169, 110, 0.5);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .wish-item .btn-delete-wish {
+    background: none;
+    border: none;
+    color: rgba(201, 169, 110, 0.4);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    transition: color 0.2s;
+    font-family: inherit;
+  }
+  .wish-item .btn-delete-wish:hover {
+    color: #ff6b6b;
+  }
+
+  .empty-hint {
+    text-align: center;
+    color: rgba(201, 169, 110, 0.4);
+    font-size: 14px;
+    letter-spacing: 3px;
+    padding: 40px 0;
+  }
+
+  /* ====== 底部 ====== */
+  .footer-decoration {
+    text-align: center;
+    padding: 30px 0 10px;
+    color: rgba(201, 169, 110, 0.3);
+    font-size: 12px;
+    letter-spacing: 4px;
+  }
+
+  /* 隐藏的文件输入 */
+  #deityImageInput { display: none; }
+
+  /* 响应式 */
+  @media (max-width: 600px) {
+    .main-title { font-size: 28px; letter-spacing: 4px; }
+    .deity-card { width: 80px; }
+    .deity-card img { width: 64px; height: 64px; }
+    .wish-input-row { flex-direction: column; }
+    .btn-select-all { width: 100%; }
+    .btn-submit { width: 100%; }
+    .divider-text { font-size: 16px; letter-spacing: 3px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 顶部装饰 -->
+<div class="header-decoration">
+  <div class="cloud">☁️ ✨ ☁️</div>
+</div>
+
+<!-- 标题 -->
+<h1 class="main-title">天阶祈福</h1>
+<p class="sub-title">— 心诚则灵 · 有求必应 —</p>
+
+<!-- 神仙区域 -->
+<div class="deity-section">
+  <h2>🙏 诸天神佛 🙏</h2>
+  <div class="deity-row" id="defaultDeityRow">
+    <!-- JS动态生成默认神仙列表 -->
+  </div>
+  <div class="deity-row" id="userDeityRow">
+    <!-- 用户添加的神仙在这行 -->
+    <!-- 占位卡片 -->
+    <div class="deity-card placeholder" id="addPlaceholder" onclick="document.getElementById('deityImageInput').click()">
+      <div class="placeholder-icon">＋</div>
+      <div class="placeholder-text">添加神仙</div>
+    </div>
+  </div>
+  <div class="add-btn-wrapper">
+    <button class="btn-add-deity" onclick="document.getElementById('deityImageInput').click()">
+      <span class="btn-icon">➕</span> 迎请神仙
+    </button>
+    <input type="file" id="deityImageInput" accept="image/*" onchange="addUserDeity(event)">
+  </div>
+</div>
+
+<!-- 分割线 -->
+<div class="divider-section">
+  <div class="divider-line"></div>
+  <div class="divider-text">天阶祈福法宝，有求必应，佛本是道</div>
+  <div class="divider-sub">— 心之所愿，无所不成 —</div>
+  <div class="divider-line" style="margin-top:12px;"></div>
+</div>
+
+<!-- 祈福输入 -->
+<div class="wish-section">
+  <div class="wish-input-row">
+    <input type="text" class="wish-input" id="wishInput" placeholder="在此写下您的愿望…" maxlength="200" autocomplete="off">
+    <button class="btn-select-all" onclick="selectAllDeities()" title="全选所有神仙">全 选</button>
+    <button class="btn-submit" onclick="submitWish()">祈 福</button>
+  </div>
+  <div class="selected-deity-tags" id="selectedDeityTags"></div>
+</div>
+
+<!-- 愿望列表 -->
+<div class="wish-list-section">
+  <h2>📜 祈福名录 📜</h2>
+  <ul class="wish-list" id="wishList"></ul>
+  <div class="empty-hint" id="emptyHint">— 心诚则灵，写下您的愿望吧 —</div>
+</div>
+
+<!-- 底部 -->
+<div class="footer-decoration">
+  🕯️ 天阶祈福法宝 · 有求必应 · 佛本是道 🕯️
+</div>
+
+<script>
+// ====== 数据 ======
+const defaultDeities = [
+  { name: '鸿钧老祖', file: '鸿钧老祖.webp' },
+  { name: '道教三清', file: '道教三清.jpg' },
+  { name: '如来佛祖', file: '如来佛祖.jpg' },
+  { name: '观音菩萨', file: '观音菩萨.jpg' },
+  { name: '玉皇大帝', file: '玉皇大帝.jpg' },
+  { name: '文殊菩萨', file: '文殊菩萨.webp' },
+  { name: '地藏王',   file: '地藏王.jpg' },
+  { name: '文昌帝君', file: '文昌帝君.webp' },
+  { name: '魁星',     file: '魁星.jpeg' },
+  { name: '关帝',     file: '关帝.jpg' },
+  { name: '赵公明',   file: '赵公明.jpg' },
+  { name: '南极星君', file: '南极星君.jpg' },
+  { name: '五龙王',   file: '五龙王.jpeg' },
+  { name: '合肥城隍庙', file: '合肥城隍庙.jpg' },
+  { name: '西湖城隍庙', file: '西湖城隍庙.jpg' },
+];
+
+let selectedDeities = []; // 当前选中的神仙列表 [{ name, imgSrc, isUser }]
+
+// 从 localStorage 加载
+function loadUserDeities() {
+  try { return JSON.parse(localStorage.getItem('userDeities') || '[]'); } catch(e) { return []; }
+}
+function saveUserDeities(data) { localStorage.setItem('userDeities', JSON.stringify(data)); }
+function loadWishes() {
+  try { return JSON.parse(localStorage.getItem('wishes') || '[]'); } catch(e) { return []; }
+}
+function saveWishes(data) { localStorage.setItem('wishes', JSON.stringify(data)); }
+
+// ====== 渲染默认神仙 ======
+// 图片缓存版本号 — 图片更新后改这个数字即可刷新缓存
+const IMG_CACHE_VERSION = '20260629c';
+
+function isDeitySelected(name) {
+  return selectedDeities.some(s => s.name === name);
+}
+
+function renderDefaultDeities() {
+  const row = document.getElementById('defaultDeityRow');
+  row.innerHTML = defaultDeities.map((d, i) => `
+    <div class="deity-card${isDeitySelected(d.name) ? ' selected' : ''}"
+         onclick="toggleDeity('${d.name}', '${d.file}', false)"
+         title="${d.name}">
+      <img src="${d.file}?v=${IMG_CACHE_VERSION}" alt="${d.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <div style="display:none;width:90px;height:90px;border-radius:50%;background:rgba(139,69,19,0.2);line-height:90px;text-align:center;font-size:24px;">🙏</div>
+      <div class="deity-name">${d.name}</div>
+    </div>
+  `).join('');
+}
+
+// ====== 渲染用户神仙 ======
+function renderUserDeities() {
+  const userDeities = loadUserDeities();
+  const row = document.getElementById('userDeityRow');
+  let html = userDeities.map((d, i) => `
+    <div class="deity-card user-added${isDeitySelected(d.name) ? ' selected' : ''}"
+         onclick="toggleDeity('${escapeHtml(d.name)}', '${d.imgSrc}', true)"
+         title="${escapeHtml(d.name)}">
+      <img src="${d.imgSrc}" alt="${escapeHtml(d.name)}">
+      <div class="deity-name">${escapeHtml(d.name)}</div>
+      <button class="btn-remove-deity" onclick="event.stopPropagation();removeUserDeity(${i})">移除</button>
+    </div>
+  `).join('');
+
+  // 占位卡片
+  html += `
+    <div class="deity-card placeholder" id="addPlaceholder" onclick="document.getElementById('deityImageInput').click()">
+      <div class="placeholder-icon">＋</div>
+      <div class="placeholder-text">添加神仙</div>
+    </div>
+  `;
+
+  row.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ====== 选中/取消神仙（多选切换） ======
+function toggleDeity(name, imgSrc, isUser) {
+  const idx = selectedDeities.findIndex(s => s.name === name);
+  if (idx >= 0) {
+    selectedDeities.splice(idx, 1);
+  } else {
+    selectedDeities.push({ name, imgSrc, isUser });
+  }
+  updateSelectionUI();
+}
+
+function updateSelectionUI() {
+  renderDefaultDeities();
+  renderUserDeities();
+  const container = document.getElementById('selectedDeityTags');
+  if (selectedDeities.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = selectedDeities.map((s, i) => `
+    <span class="selected-deity-tag">
+      向 <strong>${escapeHtml(s.name)}</strong> 祈福
+      <span class="clear-deity" onclick="removeSelection(${i})">✕</span>
+    </span>
+  `).join('');
+}
+
+function removeSelection(index) {
+  selectedDeities.splice(index, 1);
+  updateSelectionUI();
+}
+
+function clearSelection() {
+  selectedDeities = [];
+  updateSelectionUI();
+}
+
+// ====== 全选 ======
+function selectAllDeities() {
+  const userDeities = loadUserDeities();
+  // 收集所有神仙
+  const all = [
+    ...defaultDeities.map(d => ({ name: d.name, imgSrc: d.file, isUser: false })),
+    ...userDeities.map(d => ({ name: d.name, imgSrc: d.imgSrc, isUser: true }))
+  ];
+  // 如果已全选则取消全选
+  if (selectedDeities.length === all.length) {
+    selectedDeities = [];
+  } else {
+    selectedDeities = all;
+  }
+  updateSelectionUI();
+}
+
+// ====== 添加用户神仙 ======
+function addUserDeity(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const name = prompt('请输入神仙名号：', file.name.replace(/\.[^.]+$/, ''));
+    if (!name || !name.trim()) return;
+
+    const userDeities = loadUserDeities();
+    userDeities.push({ name: name.trim(), imgSrc: e.target.result });
+    saveUserDeities(userDeities);
+    renderUserDeities();
+  };
+  reader.readAsDataURL(file);
+  event.target.value = ''; // 清空以便重复选同一文件
+}
+
+// ====== 移除用户神仙 ======
+function removeUserDeity(index) {
+  const userDeities = loadUserDeities();
+  const removed = userDeities[index];
+  userDeities.splice(index, 1);
+  saveUserDeities(userDeities);
+
+  // 如果移除的是当前选中的，取消选中
+  if (removed) {
+    selectedDeities = selectedDeities.filter(s => s.name !== removed.name);
+  }
+
+  renderUserDeities();
+  updateSelectionUI();
+}
+
+// ====== 提交愿望 ======
+function submitWish() {
+  const input = document.getElementById('wishInput');
+  const text = input.value.trim();
+  if (!text) {
+    input.focus();
+    input.style.borderColor = '#ff6b6b';
+    setTimeout(() => { input.style.borderColor = ''; }, 800);
+    return;
+  }
+
+  const wishes = loadWishes();
+  wishes.unshift({
+    id: Date.now(),
+    text: text,
+    deities: selectedDeities.length > 0 ? selectedDeities.map(s => ({ name: s.name, imgSrc: s.imgSrc })) : null,
+    time: new Date().toLocaleString('zh-CN', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })
+  });
+  saveWishes(wishes);
+  renderWishes();
+  input.value = '';
+  input.focus();
+}
+
+// ====== 渲染愿望列表 ======
+function renderWishes() {
+  const wishes = loadWishes();
+  const list = document.getElementById('wishList');
+  const hint = document.getElementById('emptyHint');
+
+  if (wishes.length === 0) {
+    list.innerHTML = '';
+    hint.style.display = 'block';
+    return;
+  }
+
+  hint.style.display = 'none';
+  list.innerHTML = wishes.map((w, i) => {
+    // 兼容旧数据（deity 单数）和新数据（deities 复数）
+    const deityList = w.deities || (w.deity ? [w.deity] : []);
+    return `
+    <li class="wish-item">
+      ${deityList.length > 0
+        ? deityList.map(d => `<img class="wish-deity-img" src="${d.imgSrc}" alt="${escapeHtml(d.name)}" title="向${escapeHtml(d.name)}祈福" onerror="this.style.display='none';">`).join('')
+        : `<span style="font-size:20px;flex-shrink:0;">🙏</span>`}
+      <span class="wish-text">${escapeHtml(w.text)}</span>
+      <span class="wish-time">${w.time}</span>
+      <button class="btn-delete-wish" onclick="deleteWish(${w.id})" title="删除">✕</button>
+    </li>
+  `}).join('');
+}
+
+// ====== 删除愿望 ======
+function deleteWish(id) {
+  let wishes = loadWishes();
+  wishes = wishes.filter(w => w.id !== id);
+  saveWishes(wishes);
+  renderWishes();
+}
+
+// ====== 键盘提交 ======
+document.getElementById('wishInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') submitWish();
+});
+
+// ====== 初始化 ======
+renderDefaultDeities();
+renderUserDeities();
+renderWishes();
+</script>
+
+</body>
+</html>
